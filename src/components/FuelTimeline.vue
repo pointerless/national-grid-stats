@@ -1,8 +1,9 @@
 
 <script>
-import { Line } from "vue-chartjs";
+import { Line, mixins } from "vue-chartjs";
 
   export default {
+    mixins: [mixins.reactiveProp],
     extends: Line,
     name: "FuelTimeline",
     props: {
@@ -14,7 +15,3 @@ import { Line } from "vue-chartjs";
     }
   }
 </script>
-
-<style scoped>
-
-</style>

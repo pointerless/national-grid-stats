@@ -4,11 +4,11 @@
     <b-tabs v-if="loaded">
       <b-tab title="Current" active>
         <h3>Data for {{ dateGen }} {{ timeGen }}</h3>
-        <FuelPie class="small-pie" :chart-data="generationData" :options="pieOptions"/>
+        <FuelPie class="small-pie" :chart-data="generationDataOut" :options="pieOptions"/>
       </b-tab>
       <b-tab title="Past 24h">
         <h1></h1>
-        <FuelTimeline class="fuel-timeline" :chart-data="timelineData" :options="lineOptions"/>
+        <FuelTimeline class="fuel-timeline" :chart-data="timelineDataOut" :options="lineOptions"/>
       </b-tab>
     </b-tabs>
     <div class="text-center" v-if="!loaded">
@@ -73,6 +73,14 @@ export default {
         responsive: true,
         maintainAspectRatio: true,
       },
+    }
+  },
+  computed: {
+    generationDataOut(){
+      return this.generationData;
+    },
+    timelineDataOut(){
+      return this.timelineData;
     }
   },
   components: {
