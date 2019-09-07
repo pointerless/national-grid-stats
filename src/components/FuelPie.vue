@@ -7,7 +7,6 @@ export default {
   extends: Pie,
   name: 'FuelPie',
   props: {
-    chartData: Object,
     options: Object
   },
   mounted() {

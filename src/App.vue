@@ -50,6 +50,27 @@ export default {
               }
             }
           ]
+        },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+              rangeMin: {
+              },
+              rangeMax: {
+              }
+            },
+            zoom: {
+              enabled: true,
+              mode: 'x',
+              rangeMin: {
+              },
+              rangeMax: {
+
+              }
+            }
+          }
         }
       },
       dateLineStart: "",
@@ -89,7 +110,6 @@ export default {
   },
   methods: {
     async generationLoad(){
-      console.log("Reloading Current");
       await getGeneration()
         .then(value => {
           if(value !== null) {
@@ -120,7 +140,6 @@ export default {
       return Promise.resolve(true);
     },
     async timelineLoad(){
-      console.log("Reloading 24h");
       await getGenerationTimeline()
         .then(value => {
           if(value !== null) {
@@ -180,6 +199,7 @@ export default {
 
 .small-pie {
   margin: 0 auto;
+  max-width: 100vw;
   width: 70vh;
 }
 .fuel-timeline{
