@@ -7,7 +7,6 @@
         <FuelPie class="small-pie" :chart-data="generationDataOut" :options="pieOptions"/>
       </b-tab>
       <b-tab title="Past 24h">
-        <h1></h1>
         <FuelTimeline class="fuel-timeline" :chart-data="timelineDataOut" :options="lineOptions"/>
       </b-tab>
     </b-tabs>
@@ -38,12 +37,16 @@ export default {
               ticks: {
                 min: 0,
                 max: 100,
+                fontColor: "wheat"
               },
               stacked: true
             }
           ],
           xAxes: [
             {
+              ticks: {
+                fontColor: "wheat"
+              },
               type: 'time',
               time: {
                 unit: 'hour'
@@ -71,6 +74,11 @@ export default {
               }
             }
           }
+        },
+        legend: {
+          labels: {
+            fontColor: "wheat",
+          }
         }
       },
       dateLineStart: "",
@@ -93,6 +101,11 @@ export default {
       pieOptions: {
         responsive: true,
         maintainAspectRatio: true,
+        legend: {
+          labels: {
+            fontColor: "wheat",
+          }
+        }
       },
     }
   },
@@ -188,13 +201,16 @@ export default {
 </script>
 
 <style>
+html, #app{
+  background-color: #2c3e50;
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+  color: wheat;
+  margin-top: 40px;
 }
 
 .small-pie {
@@ -204,7 +220,8 @@ export default {
 }
 .fuel-timeline{
   position: relative;
-  height: 75vh;
+  margin: auto;
+  height: calc(100vh - 150px);
   width: 99%;
 }
 </style>
