@@ -17,6 +17,14 @@ export function getGenerationTimeline(url = "https://api.carbonintensity.org.uk/
   })
 }
 
+export function getGenerationAdjustTimeline(start, end, url = "https://api.carbonintensity.org.uk/generation"){
+  return new Promise((resolve, reject) => {
+    fetch(url+`/${start.toISOString()}/${end.toISOString()}`)
+      .then(response => { resolve(response.json()); })
+      .catch(reason => { reject(reason) });
+  })
+}
+
 export function fuelTypes(){
   return [
     "gas",

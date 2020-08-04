@@ -9,6 +9,24 @@
       <b-tab title="Past 24h">
         <FuelTimeline class="fuel-timeline" :chart-data="timelineDataOut" :options="lineOptions"/>
       </b-tab>
+      <b-tab title="Date Range">
+        <b-container>
+          <b-row>
+            <b-col>
+              <b-form-datepicker v-model="adjustStart" id="adjust-start" placeholder="Start Date" value-as-date
+                                :min="minAdjust" :max="adjustEnd"/>
+            </b-col>
+            <b-col>
+              <h5>Max. 30 days. Future is predicted</h5>
+            </b-col>
+            <b-col>
+              <b-form-datepicker v-model="adjustEnd" id="adjust-end" placeholder="End Date" value-as-date
+                                 :min="adjustStart" :max="maxAdjust"/>
+            </b-col>
+          </b-row>
+        </b-container>
+        <FuelTimeline class="fuel-timeline-adjust" :chart-data="adjustTimelineDataOut" :options="lineOptions"/>
+      </b-tab>
     </b-tabs>
     <div class="text-center" v-if="!loaded">
       <b-spinner variant="primary" style="width: 20vh; height: 20vh"></b-spinner>
@@ -20,7 +38,7 @@
 import cron from "node-cron";
 import FuelPie from "@/components/FuelPie";
 import FuelTimeline from "@/components/FuelTimeline";
-import {getGeneration, fuelColor, fuelSort, getGenerationTimeline} from "@/services/CarbonIntensityAPI";
+import {getGeneration, fuelColor, fuelSort, getGenerationTimeline, getGenerationAdjustTimeline} from "@/services/CarbonIntensityAPI";
 
 export default {
   name: 'app',
@@ -81,6 +99,62 @@ export default {
           }
         }
       },
+      lineOptionsAdjust: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          yAxes: [
+            {
+              ticks: {
+                min: 0,
+                max: 100,
+                fontColor: "wheat"
+              },
+              stacked: true
+            }
+          ],
+          xAxes: [
+            {
+              ticks: {
+                fontColor: "wheat"
+              },
+              type: 'time',
+              time: {
+                unit: 'dayhour',
+                displayFormats:{
+                  dayhour: 'DD h:mm'
+                }
+              }
+            }
+          ]
+        },
+        plugins: {
+          zoom: {
+            pan: {
+              enabled: true,
+              mode: 'x',
+              rangeMin: {
+              },
+              rangeMax: {
+              }
+            },
+            zoom: {
+              enabled: true,
+              mode: 'x',
+              rangeMin: {
+              },
+              rangeMax: {
+
+              }
+            }
+          }
+        },
+        legend: {
+          labels: {
+            fontColor: "wheat",
+          }
+        }
+      },
       dateLineStart: "",
       dateLineEnd: "",
       timeGen: "",
@@ -90,6 +164,13 @@ export default {
 
         ]
       },
+      adjustTimelineData: {
+        datasets: [
+
+        ]
+      },
+      adjustStart: null,
+      adjustEnd: null,
       generationData: {
         datasets: [{
           data: [],
@@ -115,6 +196,33 @@ export default {
     },
     timelineDataOut(){
       return this.timelineData;
+    },
+    adjustTimelineDataOut(){
+      return this.adjustTimelineData;
+    },
+    minAdjust(){
+      let date = null;
+      if(this.adjustEnd){
+         date = new Date(this.adjustEnd.valueOf());
+         date.setDate(date.getDate() - 30);
+      }
+      return date
+    },
+    maxAdjust(){
+      let date = null;
+      if(this.adjustStart){
+        date = new Date(this.adjustStart.valueOf());
+        date.setDate(date.getDate() + 30);
+      }
+      return date
+    }
+  },
+  watch:{
+    adjustStart() {
+      this.adjustRefresh();
+    },
+    adjustEnd() {
+      this.adjustRefresh();
     }
   },
   components: {
@@ -190,11 +298,44 @@ export default {
         .then((results) => {
           if(results[0] && results[1]) this.loaded = true;
         });
+    },
+    async adjustRefresh(){
+      if(this.adjustStart && this.adjustEnd){
+        await getGenerationAdjustTimeline(this.adjustStart, this.adjustEnd)
+          .then(value => {
+            if(value !== null) {
+              const tempTimData = {
+                datasets: []
+              };
+              let indexStore = {};
+              value["data"].forEach(dataEntry => {
+                dataEntry["generationmix"].forEach(fuelType => {
+                  if(!(fuelType["fuel"] in indexStore)){
+                    tempTimData.datasets.push({
+                      label: fuelType["fuel"],
+                      data: [{x: new Date(dataEntry["to"]), y: fuelType["perc"]}],
+                      backgroundColor: fuelColor(fuelType["fuel"])
+                    });
+                    indexStore[fuelType["fuel"]] = tempTimData.datasets.length-1;
+                  } else {
+                    tempTimData.datasets[indexStore[fuelType["fuel"]]]["data"]
+                        .push({x: new Date(dataEntry["to"]), y: fuelType["perc"]})
+                  }
+                });
+              });
+              tempTimData.datasets.sort((a, b) => {
+                return fuelSort(a["label"]) - fuelSort(b["label"]);
+              });
+              this.adjustTimelineData = tempTimData;
+            }
+          })
+      }
+      return Promise.resolve(true);
     }
   },
   async mounted() {
     this.loaded = false;
-    this.refreshData();
+    await this.refreshData();
     cron.schedule("1,31 * * * *", this.refreshData, {});
   }
 }
@@ -222,6 +363,12 @@ html, #app{
   position: relative;
   margin: auto;
   height: calc(100vh - 150px);
+  width: 99%;
+}
+.fuel-timeline-adjust{
+  position: relative;
+  margin: auto;
+  height: calc(100vh - 200px);
   width: 99%;
 }
 </style>
